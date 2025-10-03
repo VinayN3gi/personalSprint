@@ -10,8 +10,8 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: '#2563EB',   // active blue (e.g. Tailwind's blue-600)
-        tabBarInactiveTintColor: '#93C5FD', // lighter blue (e.g. Tailwind's blue-300)
+        tabBarActiveTintColor: '#2563EB',  
+        tabBarInactiveTintColor: '#93C5FD', 
       }}
     >
       <Tabs.Screen
