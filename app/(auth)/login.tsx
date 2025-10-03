@@ -4,7 +4,7 @@ import React from 'react'
 const login = () => {
   return (
     <View>
-      <Text>login</Text>
+      <Text className='text-red-200'>login</Text>
     </View>
   )
 }
