@@ -12,11 +12,11 @@ export default function LoginScreen() {
     if (!email) return;
     setLoading(true);
     try {
-      await account.createEmailToken({
+      const token=await account.createEmailToken({
         userId: ID.unique(),
         email: email,
       });
-      router.push({ pathname: "/(auth)/otp", params: { email } }); // ✅ fixed path
+      router.push({ pathname: "/(auth)/otp", params: { email, userId: token.userId } });
     } catch (err) {
       console.error("Error sending OTP:", err);
     } finally {
@@ -54,7 +54,7 @@ export default function LoginScreen() {
       <TouchableOpacity
         disabled={!email || loading}
         className={`rounded-lg py-3 mb-4 flex-row items-center justify-center ${
-          !email || loading ? "bg-blue-700" : "bg-blue-400"
+          !loading ? "bg-blue-700" : "bg-blue-400"
         }`}
         onPress={handleSendOTP}
       >

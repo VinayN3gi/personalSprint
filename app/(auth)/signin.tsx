@@ -12,11 +12,11 @@ export default function SignupScreen() {
     if (!email) return;
     setLoading(true);
     try {
-      await account.createEmailToken({
+      const token=await account.createEmailToken({
         userId: ID.unique(),
         email: email,
       });
-      router.push({ pathname: "/(auth)/otp", params: { email } });
+      router.push({ pathname: "/(auth)/otp", params: { email, userId: token.userId } });
     } catch (err) {
       console.error("Signup failed:", err);
     } finally {
@@ -51,9 +51,9 @@ export default function SignupScreen() {
 
       {/* CTA with Loading */}
       <TouchableOpacity
-        disabled={!email || loading}
+        disabled={loading}
         className={`rounded-lg py-3 mb-4 flex-row items-center justify-center ${
-          !email || loading ? "bg-blue-700" : "bg-blue-400"
+        !loading ? "bg-blue-700" : "bg-blue-400"
         }`}
         onPress={handleSignup}
       >
