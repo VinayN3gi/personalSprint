@@ -20,10 +20,15 @@ export function useAuth() {
     checkSession();
   }, []);
 
-  const logout = async () => {
-    await account.deleteSession("current");
+ const logout = async () => {
+  try {
+    await account.deleteSession({ sessionId: 'current' }); 
     setUser(null);
-  };
+  } catch (err) {
+    console.error("Logout failed:", err);
+  }
+};
+
 
   return { user, loading, logout };
 }
