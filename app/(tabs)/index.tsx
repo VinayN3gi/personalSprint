@@ -7,23 +7,66 @@ import {
   Modal,
   Pressable,
   FlatList,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { account, ID, DB_ID, SPRINTS_ID, tables } from "@/lib/appwrite";
+import { useRouter } from "expo-router";
 
 export default function CreateSprintScreen() {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState<number>(7);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const options = [7, 14];
 
-  const handleCreateSprint = () => {
-    console.log("Sprint Created:", { title, duration });
-  };
+const handleCreateSprint = async () => {
+  if (!title.trim()) {
+    Alert.alert("Missing Info", "Please enter a sprint title.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // Get current user
+    const user = await account.get();
+
+    // Calculate dates
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(startDate.getDate() + duration);
+
+    // Create new sprint row (Appwrite v21+ syntax)
+    await tables.createRow({
+      databaseId: DB_ID,
+      tableId: SPRINTS_ID,
+      rowId: ID.unique(),
+      data: {
+        userId: user.$id,
+        title,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        duration,
+        status: "ACTIVE",
+      },
+    });
+
+    setLoading(false);
+    router.replace("/(tabs)/sprint");
+  } catch (err: any) {
+    console.error("Error creating sprint:", err);
+    Alert.alert("Error", "Failed to create sprint. Please try again.");
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 px-6">
-      {/* Header */}
       <View className="mt-10 mb-6">
         <Text className="text-3xl font-bold text-center text-gray-900">
           Create New Sprint
@@ -64,20 +107,27 @@ export default function CreateSprintScreen() {
 
         {/* Action Button */}
         <TouchableOpacity
-          className="bg-blue-600 rounded-lg py-4 shadow-md"
+          disabled={loading}
+          className={`rounded-lg py-4 mt-6 ${
+            loading ? "bg-blue-400" : "bg-blue-600"
+          } shadow-md`}
           onPress={handleCreateSprint}
         >
-          <Text className="text-white text-center text-lg font-semibold">
-            Start Sprint
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white text-center text-lg font-semibold">
+              Start Sprint
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Dropdown Modal */}
       <Modal
         transparent={true}
         visible={dropdownVisible}
         animationType="slide"
+        className="bg-transparent"
         onRequestClose={() => setDropdownVisible(false)}
       >
         <Pressable
