@@ -1,36 +1,75 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Modal,
-  Pressable,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const dummyTasks = {
-  todo: [
-    { id: "1", title: "Write project plan", desc: "Draft the sprint plan document" },
-    { id: "2", title: "Set up repo", desc: "Initialize GitHub repository" },
-    { id: "5", title: "Review notes", desc: "Check sprint backlog items" },
-  ],
-  doing: [
-    { id: "3", title: "UI Prototype", desc: "Design prototype screens in Figma" },
-    { id: "6", title: "API Setup", desc: "Integrate Appwrite backend" },
-  ],
-  completed: [
-    { id: "4", title: "Research tools", desc: "Look into productivity apps for reference" },
-  ],
-};
+import { account, tables, DB_ID, SPRINTS_ID, TASKS_ID } from "@/lib/appwrite";
+import { Query } from "appwrite";
+import TaskModal from "@/components/TaskModal";
+import EmptyState from "@/components/EmptyState";
+import { useRouter } from "expo-router";
 
 export default function SprintBoard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [sprint, setSprint] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const router=useRouter();
+
   const screenWidth = Dimensions.get("window").width;
   const columnWidth = screenWidth / 3 - 16;
 
-  // Progress bar calculation
+  useEffect(() => {
+    const fetchSprintData = async () => {
+      try {
+        setLoading(true);
+        const user = await account.get();
+
+        const sprintRes = await tables.listRows({
+          databaseId: DB_ID,
+          tableId: SPRINTS_ID,
+          queries: [Query.equal("userId", user.$id), Query.equal("status", "ACTIVE")],
+        });
+
+        if (sprintRes.rows.length === 0) {
+          setError("No active sprint found. Create a sprint to get started!");
+          setLoading(false);
+          return;
+        }
+
+        const activeSprint = sprintRes.rows[0];
+        setSprint(activeSprint);
+
+        const taskRes = await tables.listRows({
+          databaseId: DB_ID,
+          tableId: TASKS_ID,
+          queries: [Query.equal("sprintId", activeSprint.$id)],
+        });
+
+        setTasks(taskRes.rows);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching sprint data:", err);
+        setError("Failed to load sprint. Please try again.");
+        setLoading(false);
+      }
+    };
+
+    fetchSprintData();
+  }, []);
+
+  const dummyTasks = {
+    todo: tasks.filter((t) => t.status === "todo"),
+    doing: tasks.filter((t) => t.status === "doing"),
+    completed: tasks.filter((t) => t.status === "completed"),
+  };
+
   const totalTasks =
     dummyTasks.todo.length +
     dummyTasks.doing.length +
@@ -49,36 +88,57 @@ export default function SprintBoard() {
       style={{ width: columnWidth }}
       className={`px-1 ${isLast ? "mr-3" : ""}`}
     >
-      {/* Column header with counter */}
       <Text className={`text-base font-bold mb-3 text-center ${color}`}>
         {title} ({tasks.length})
       </Text>
 
-      {/* Scrollable tasks */}
       <ScrollView className="space-y-4">
-        {tasks.map((task) => (
-          <TouchableOpacity
-            key={task.id}
-            className={`rounded-lg shadow px-3 py-4 ${cardColor} mb-3`}
-            onPress={() => setSelectedTask(task)}
-          >
-            <Text className="font-semibold text-gray-900 text-sm">
-              {task.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {tasks.length === 0 ? (
+          <Text className="text-center text-gray-500 text-sm italic">
+            No tasks here
+          </Text>
+        ) : (
+          tasks.map((task) => (
+            <TouchableOpacity
+              key={task.$id}
+              className={`rounded-lg shadow px-3 py-4 ${cardColor} mb-3`}
+              onPress={() => setSelectedTask(task)}
+            >
+              <Text className="font-semibold text-gray-900 text-sm">
+                {task.title}
+              </Text>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </View>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text className="mt-3 text-gray-600">Loading your sprint...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return(
+    <EmptyState
+      title="No Active Sprint"
+      message="Looks like you haven’t started a sprint yet. Create one to begin tracking your tasks and progress!"
+      buttonText="Create Sprint"
+      onPress={() => router.replace("/(tabs)")}
+    />)
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      {/* Sprint Header */}
       <Text className="text-xl font-bold text-center py-3">
-        Sprint 1 (Day 3 of 7)
+        {sprint?.title || "Sprint"}
       </Text>
 
-      {/* Progress Bar */}
       <View className="mx-4 mb-4">
         <View className="h-3 w-full bg-gray-300 rounded-full overflow-hidden">
           <View
@@ -91,7 +151,6 @@ export default function SprintBoard() {
         </Text>
       </View>
 
-      {/* Columns with full-height dashed dividers */}
       <View className="flex-row flex-1 px-2">
         {renderColumn("TO DO", dummyTasks.todo, "text-gray-700", "bg-gray-300/90")}
         <View
@@ -112,28 +171,13 @@ export default function SprintBoard() {
         )}
       </View>
 
-      {/* Task Modal */}
-      <Modal
+      {/* Reusable Task Modal */}
+      <TaskModal
         visible={!!selectedTask}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedTask(null)}
-      >
-        <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className="bg-white rounded-xl w-11/12 p-6">
-            <Text className="text-xl font-bold mb-2">{selectedTask?.title}</Text>
-            <Text className="text-gray-700 mb-6">{selectedTask?.desc}</Text>
-            <Pressable
-              onPress={() => setSelectedTask(null)}
-              className="bg-blue-600 rounded-lg py-3"
-            >
-              <Text className="text-white text-center font-semibold">Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+        task={selectedTask}
+        onClose={() => setSelectedTask(null)}
+      />
 
-      {/* Floating Add Button */}
       <TouchableOpacity
         className="absolute bottom-6 right-6 bg-blue-600 w-14 h-14 rounded-full justify-center items-center shadow-lg"
         onPress={() => {}}
