@@ -8,4 +8,5 @@ export const account = new Account(client);
 export const databases = new Databases(client);
 export const DB_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 export const SPRINTS_ID = process.env.EXPO_PUBLIC_APPWRITE_SPRINTS_COLLECTION_ID!;
+export const TASKS_ID = process.env.EXPO_PUBLIC_APPWRITE_TASKS_COLLECTION_ID!;
 export { ID };
