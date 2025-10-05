@@ -1,4 +1,5 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import 'react-native-reanimated';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -6,7 +7,8 @@ import "../global.css";
 import { useEffect } from 'react';
 import { Platform, View, ActivityIndicator, Text } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
-import { useAuth } from '@/hooks/useAuth'; // your auth hook
+import { useAuth } from '@/hooks/useAuth'; 
+
 
 export const unstable_settings = {
   anchor: '(tabs)',
