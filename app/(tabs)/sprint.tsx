@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { account, tables, DB_ID, SPRINTS_ID, TASKS_ID } from "@/lib/appwrite";
@@ -15,6 +13,7 @@ import EmptyState from "@/components/EmptyState";
 import { useRouter } from "expo-router";
 import SprintLoadingState from "@/components/SprintLoadingState";
 import CreateTaskModal from "@/components/CreateTask";
+import TaskColumn from "@/components/TaskColumn";
 
 
 export default function SprintBoard() {
@@ -25,10 +24,7 @@ export default function SprintBoard() {
   const [error, setError] = useState<string | null>(null);
   const router=useRouter();
 
-  const screenWidth = Dimensions.get("window").width;
-  const columnWidth = screenWidth / 3 - 16;
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [refreshToken,setToken]=useState(false);
 
   const refreshTasks = async (sprintId: string) => {
     const taskRes = await tables.listRows({
@@ -91,42 +87,6 @@ export default function SprintBoard() {
   const completedTasks = dummyTasks.completed.length;
   const progress = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
-  const renderColumn = (
-    title: string,
-    tasks: any[],
-    color: string,
-    cardColor: string,
-    isLast: boolean = false
-  ) => (
-    <View
-      style={{ width: columnWidth }}
-      className={`px-1 ${isLast ? "mr-3" : ""}`}
-    >
-      <Text className={`text-base font-bold mb-3 text-center ${color}`}>
-        {title} ({tasks.length})
-      </Text>
-
-      <ScrollView className="space-y-4">
-        {tasks.length === 0 ? (
-          <Text className="text-center text-gray-500 text-sm italic">
-            No tasks here
-          </Text>
-        ) : (
-          tasks.map((task) => (
-            <TouchableOpacity
-              key={task.$id}
-              className={`rounded-lg shadow px-3 py-4 ${cardColor} mb-3`}
-              onPress={() => setSelectedTask(task)}
-            >
-              <Text className="font-semibold text-gray-900 text-sm">
-                {task.title}
-              </Text>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
-    </View>
-  );
 
   if (loading) {
     return (
@@ -162,30 +122,49 @@ export default function SprintBoard() {
         </Text>
       </View>
 
-      <View className="flex-row flex-1 px-2">
-        {renderColumn("TO DO", dummyTasks.todo, "text-gray-700", "bg-gray-300/90")}
-        <View
-          className="w-px border-l border-gray-400 mx-2"
-          style={{ borderStyle: "dashed", borderWidth: 1 }}
-        />
-        {renderColumn("DOING", dummyTasks.doing, "text-blue-600", "bg-blue-100")}
-        <View
-          className="w-px border-l border-gray-400 mx-2"
-          style={{ borderStyle: "dashed", borderWidth: 1 }}
-        />
-        {renderColumn(
-          "COMPLETED",
-          dummyTasks.completed,
-          "text-green-600",
-          "bg-green-100",
-          true
-        )}
-      </View>
+     <View className="flex-row flex-1 px-2">
+  <TaskColumn
+    title="TO DO"
+    tasks={dummyTasks.todo}
+    color="text-gray-700"
+    cardColor="bg-gray-300/90"
+    onSelectTask={setSelectedTask}
+  />
+
+  <View
+    className="w-px border-l border-gray-400 mx-2"
+    style={{ borderStyle: "dashed", borderWidth: 1 }}
+  />
+
+  <TaskColumn
+    title="DOING"
+    tasks={dummyTasks.doing}
+    color="text-blue-600"
+    cardColor="bg-blue-100"
+    onSelectTask={setSelectedTask}
+  />
+
+  <View
+    className="w-px border-l border-gray-400 mx-2"
+    style={{ borderStyle: "dashed", borderWidth: 1 }}
+  />
+
+  <TaskColumn
+    title="COMPLETED"
+    tasks={dummyTasks.completed}
+    color="text-green-600"
+    cardColor="bg-green-100"
+    isLast
+    onSelectTask={setSelectedTask}
+  />
+</View>
+
 
       <TaskModal
         visible={!!selectedTask}
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
+        onCreated={() => refreshTasks(sprint.$id)} 
       />
 
       <TouchableOpacity
