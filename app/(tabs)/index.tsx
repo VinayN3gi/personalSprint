@@ -8,62 +8,98 @@ import {
   Pressable,
   FlatList,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { account, ID, DB_ID, SPRINTS_ID, tables } from "@/lib/appwrite";
 import { useRouter } from "expo-router";
+import { Query } from "appwrite";
+import { AlertModal } from "@/components/AlertModal";
+
 
 export default function CreateSprintScreen() {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState<number>(7);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [alert, setAlert] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
 
+  const router = useRouter();
   const options = [7, 14];
 
-const handleCreateSprint = async () => {
-  if (!title.trim()) {
-    Alert.alert("Missing Info", "Please enter a sprint title.");
-    return;
-  }
+  const showAlert = (title: string, message: string) => {
+    setAlert({ visible: true, title, message });
+  };
 
-  setLoading(true);
+  const handleCreateSprint = async () => {
+    if (!title.trim()) {
+      showAlert("Missing Info", "Please enter a sprint title.");
+      return;
+    }
 
-  try {
-    // Get current user
-    const user = await account.get();
+    setLoading(true);
 
-    // Calculate dates
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(startDate.getDate() + duration);
+    try {
+      const user = await account.get();
 
-    // Create new sprint row (Appwrite v21+ syntax)
-    await tables.createRow({
-      databaseId: DB_ID,
-      tableId: SPRINTS_ID,
-      rowId: ID.unique(),
-      data: {
-        userId: user.$id,
-        title,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        duration,
-        status: "ACTIVE",
-      },
-    });
+      const existing = await tables.listRows({
+        databaseId: DB_ID,
+        tableId: SPRINTS_ID,
+        queries: [Query.equal("userId", user.$id), Query.equal("status", "ACTIVE")],
+      });
 
-    setLoading(false);
-    router.replace("/(tabs)/sprint");
-  } catch (err: any) {
-    console.error("Error creating sprint:", err);
-    Alert.alert("Error", "Failed to create sprint. Please try again.");
-    setLoading(false);
-  }
-};
+      if (existing.rows.length > 0) {
+        setLoading(false);
+        showAlert(
+          "Active Sprint Exists",
+          "You already have an active sprint. Please complete or close it before starting a new one."
+        );
+        setTitle("")
+        return;
+      }
 
+
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + duration);
+
+      await tables.createRow({
+        databaseId: DB_ID,
+        tableId: SPRINTS_ID,
+        rowId: ID.unique(),
+        data: {
+          userId: user.$id,
+          title,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          duration,
+          status: "ACTIVE",
+        },
+      });
+
+      setLoading(false);
+      showAlert("Success", "Your new sprint has started!");
+      
+      router.replace("/(tabs)/sprint")
+
+    } catch (err: any) {
+      console.error("Error creating sprint:", err);
+      let message = "Something went wrong. Please try again.";
+
+      if (err.message?.includes("network"))
+        message = "Network error. Please check your internet connection.";
+      else if (err.message?.includes("Unauthorized"))
+        message = "Session expired. Please log in again.";
+      else if (err.message)
+        message = err.message;
+
+      showAlert("Error", message);
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 px-6">
@@ -123,11 +159,11 @@ const handleCreateSprint = async () => {
         </TouchableOpacity>
       </View>
 
+      {/* Duration Picker Modal */}
       <Modal
-        transparent={true}
+        transparent
         visible={dropdownVisible}
         animationType="slide"
-        className="bg-transparent"
         onRequestClose={() => setDropdownVisible(false)}
       >
         <Pressable
@@ -156,6 +192,13 @@ const handleCreateSprint = async () => {
           </View>
         </Pressable>
       </Modal>
+
+      <AlertModal
+        visible={alert.visible}
+        title={alert.title}
+        message={alert.message}
+        onClose={() => setAlert({ ...alert, visible: false })}
+      />
     </SafeAreaView>
   );
 }
