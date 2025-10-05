@@ -13,6 +13,9 @@ import { Query } from "appwrite";
 import TaskModal from "@/components/TaskModal";
 import EmptyState from "@/components/EmptyState";
 import { useRouter } from "expo-router";
+import SprintLoadingState from "@/components/SprintLoadingState";
+import CreateTaskModal from "@/components/CreateTask";
+
 
 export default function SprintBoard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -24,6 +27,17 @@ export default function SprintBoard() {
 
   const screenWidth = Dimensions.get("window").width;
   const columnWidth = screenWidth / 3 - 16;
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [refreshToken,setToken]=useState(false);
+
+  const refreshTasks = async (sprintId: string) => {
+    const taskRes = await tables.listRows({
+      databaseId: DB_ID,
+      tableId: TASKS_ID,
+      queries: [Query.equal("sprintId", sprintId)],
+    });
+    setTasks(taskRes.rows);
+  };
 
   useEffect(() => {
     const fetchSprintData = async () => {
@@ -65,9 +79,9 @@ export default function SprintBoard() {
   }, []);
 
   const dummyTasks = {
-    todo: tasks.filter((t) => t.status === "todo"),
-    doing: tasks.filter((t) => t.status === "doing"),
-    completed: tasks.filter((t) => t.status === "completed"),
+    todo: tasks.filter((t) => t.status === "TODO"),
+    doing: tasks.filter((t) => t.status === "DOING"),
+    completed: tasks.filter((t) => t.status === "COMPLETED"),
   };
 
   const totalTasks =
@@ -116,10 +130,7 @@ export default function SprintBoard() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
-        <ActivityIndicator size="large" color="#2563eb" />
-        <Text className="mt-3 text-gray-600">Loading your sprint...</Text>
-      </SafeAreaView>
+     <SprintLoadingState/>
     );
   }
 
@@ -171,7 +182,6 @@ export default function SprintBoard() {
         )}
       </View>
 
-      {/* Reusable Task Modal */}
       <TaskModal
         visible={!!selectedTask}
         task={selectedTask}
@@ -180,10 +190,17 @@ export default function SprintBoard() {
 
       <TouchableOpacity
         className="absolute bottom-6 right-6 bg-blue-600 w-14 h-14 rounded-full justify-center items-center shadow-lg"
-        onPress={() => {}}
+         onPress={() => setShowCreateModal(true)}
       >
         <Text className="text-white text-3xl font-bold">+</Text>
       </TouchableOpacity>
+
+      <CreateTaskModal
+      visible={showCreateModal}
+      sprintId={sprint?.$id}
+      onClose={() => setShowCreateModal(false)}
+      onCreated={() => refreshTasks(sprint.$id)} 
+    />
     </SafeAreaView>
   );
 }
