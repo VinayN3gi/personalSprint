@@ -1,8 +1,10 @@
 import { Tabs } from "expo-router";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { RefreshProvider } from "@/hooks/RefreshContext";
 
 export default function TabLayout() {
   return (
+    <RefreshProvider>
     <Tabs screenOptions={{ headerShown: false }}>
       {/* Home Tab */}
       <Tabs.Screen
@@ -37,5 +39,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </RefreshProvider>
   );
 }
