@@ -13,6 +13,8 @@ import { useRouter } from "expo-router";
 import SprintLoadingState from "@/components/SprintLoadingState";
 import CreateTaskModal from "@/components/CreateTask";
 import TaskColumn from "@/components/TaskColumn";
+import SprintboardHeader from "@/components/SprintboardHeader";
+import { useRefresh } from "@/hooks/RefreshContext";
 
 export default function SprintBoard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -22,6 +24,7 @@ export default function SprintBoard() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const {refreshToken,triggerRefresh}=useRefresh()
 
   const refreshTasks = async (sprintId: string) => {
     const taskRes = await tables.listRows({
@@ -32,10 +35,12 @@ export default function SprintBoard() {
     setTasks(taskRes.rows);
   };
 
+
   useEffect(() => {
     const fetchSprintData = async () => {
       try {
         setLoading(true);
+        setError(null)
         const user = await account.get();
 
         const sprintRes = await tables.listRows({
@@ -46,6 +51,8 @@ export default function SprintBoard() {
             Query.equal("status", "ACTIVE"),
           ],
         });
+
+        console.log(sprintRes)
 
         if (sprintRes.rows.length === 0) {
           setError("No active sprint found. Create a sprint to get started!");
@@ -72,7 +79,7 @@ export default function SprintBoard() {
     };
 
     fetchSprintData();
-  }, []);
+  }, [refreshToken]);
 
   const dummyTasks = {
     todo: tasks.filter((t) => t.status === "TODO"),
@@ -91,6 +98,7 @@ export default function SprintBoard() {
     return <SprintLoadingState />;
   }
 
+
   if (error) {
     return (
       <EmptyState
@@ -108,17 +116,19 @@ export default function SprintBoard() {
         {sprint?.title || "Sprint"}
       </Text>
 
-      <View className="mx-4 mb-4">
-        <View className="h-3 w-full bg-gray-300 rounded-full overflow-hidden">
-          <View
-            style={{ width: `${progress * 100}%` }}
-            className="h-full bg-green-500"
-          />
-        </View>
-        <Text className="text-sm text-center mt-2 text-gray-600">
-          {completedTasks}/{totalTasks} tasks done
-        </Text>
-      </View>
+      <SprintboardHeader
+        progress={progress}
+        completedTasks={completedTasks}
+        totalTasks={totalTasks}
+        startDate={sprint?.startDate}
+        endDate={sprint?.endDate}
+        duration={sprint?.duration}
+        sprintId={sprint?.$id}
+        status={sprint?.status}
+        onSprintEnded={() =>router.replace("/(tabs)")} 
+        onCompleted={()=>triggerRefresh()}
+      />
+
 
       <View className="flex-row flex-1 px-2">
         <TaskColumn

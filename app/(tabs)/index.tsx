@@ -14,6 +14,7 @@ import { account, ID, DB_ID, SPRINTS_ID, tables } from "@/lib/appwrite";
 import { useRouter } from "expo-router";
 import { Query } from "appwrite";
 import { AlertModal } from "@/components/AlertModal";
+import { useRefresh } from "@/hooks/RefreshContext";
 
 
 export default function CreateSprintScreen() {
@@ -26,6 +27,7 @@ export default function CreateSprintScreen() {
     title: "",
     message: "",
   });
+  const {triggerRefresh}=useRefresh()
 
   const router = useRouter();
   const options = [7, 14];
@@ -81,9 +83,9 @@ export default function CreateSprintScreen() {
       });
 
       setLoading(false);
-      showAlert("Success", "Your new sprint has started!");
-      
-      router.replace("/(tabs)/sprint")
+      triggerRefresh()
+      setTimeout(() => router.replace("/(tabs)/sprint"), 500);
+
 
     } catch (err: any) {
       console.error("Error creating sprint:", err);
