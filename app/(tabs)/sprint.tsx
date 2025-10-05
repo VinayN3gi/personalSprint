@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { account, tables, DB_ID, SPRINTS_ID, TASKS_ID } from "@/lib/appwrite";
@@ -15,15 +14,13 @@ import SprintLoadingState from "@/components/SprintLoadingState";
 import CreateTaskModal from "@/components/CreateTask";
 import TaskColumn from "@/components/TaskColumn";
 
-
 export default function SprintBoard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [sprint, setSprint] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const router=useRouter();
-
+  const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const refreshTasks = async (sprintId: string) => {
@@ -44,7 +41,10 @@ export default function SprintBoard() {
         const sprintRes = await tables.listRows({
           databaseId: DB_ID,
           tableId: SPRINTS_ID,
-          queries: [Query.equal("userId", user.$id), Query.equal("status", "ACTIVE")],
+          queries: [
+            Query.equal("userId", user.$id),
+            Query.equal("status", "ACTIVE"),
+          ],
         });
 
         if (sprintRes.rows.length === 0) {
@@ -77,31 +77,29 @@ export default function SprintBoard() {
   const dummyTasks = {
     todo: tasks.filter((t) => t.status === "TODO"),
     doing: tasks.filter((t) => t.status === "DOING"),
-    completed: tasks.filter((t) => t.status === "COMPLETED"),
+    done: tasks.filter((t) => t.status === "DONE"),
   };
 
   const totalTasks =
     dummyTasks.todo.length +
     dummyTasks.doing.length +
-    dummyTasks.completed.length;
-  const completedTasks = dummyTasks.completed.length;
+    dummyTasks.done.length;
+  const completedTasks = dummyTasks.done.length;
   const progress = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
-
   if (loading) {
-    return (
-     <SprintLoadingState/>
-    );
+    return <SprintLoadingState />;
   }
 
   if (error) {
-    return(
-    <EmptyState
-      title="No Active Sprint"
-      message="Looks like you haven’t started a sprint yet. Create one to begin tracking your tasks and progress!"
-      buttonText="Create Sprint"
-      onPress={() => router.replace("/(tabs)")}
-    />)
+    return (
+      <EmptyState
+        title="No Active Sprint"
+        message="Looks like you haven’t started a sprint yet. Create one to begin tracking your tasks and progress!"
+        buttonText="Create Sprint"
+        onPress={() => router.replace("/(tabs)")}
+      />
+    );
   }
 
   return (
@@ -118,68 +116,67 @@ export default function SprintBoard() {
           />
         </View>
         <Text className="text-sm text-center mt-2 text-gray-600">
-          {completedTasks}/{totalTasks} tasks completed
+          {completedTasks}/{totalTasks} tasks done
         </Text>
       </View>
 
-     <View className="flex-row flex-1 px-2">
-  <TaskColumn
-    title="TO DO"
-    tasks={dummyTasks.todo}
-    color="text-gray-700"
-    cardColor="bg-gray-300/90"
-    onSelectTask={setSelectedTask}
-  />
+      <View className="flex-row flex-1 px-2">
+        <TaskColumn
+          title="TO DO"
+          tasks={dummyTasks.todo}
+          color="text-gray-700"
+          cardColor="bg-gray-300/90"
+          onSelectTask={setSelectedTask}
+        />
 
-  <View
-    className="w-px border-l border-gray-400 mx-2"
-    style={{ borderStyle: "dashed", borderWidth: 1 }}
-  />
+        <View
+          className="w-px border-l border-gray-400 mx-2"
+          style={{ borderStyle: "dashed", borderWidth: 1 }}
+        />
 
-  <TaskColumn
-    title="DOING"
-    tasks={dummyTasks.doing}
-    color="text-blue-600"
-    cardColor="bg-blue-100"
-    onSelectTask={setSelectedTask}
-  />
+        <TaskColumn
+          title="DOING"
+          tasks={dummyTasks.doing}
+          color="text-blue-600"
+          cardColor="bg-blue-100"
+          onSelectTask={setSelectedTask}
+        />
 
-  <View
-    className="w-px border-l border-gray-400 mx-2"
-    style={{ borderStyle: "dashed", borderWidth: 1 }}
-  />
+        <View
+          className="w-px border-l border-gray-400 mx-2"
+          style={{ borderStyle: "dashed", borderWidth: 1 }}
+        />
 
-  <TaskColumn
-    title="COMPLETED"
-    tasks={dummyTasks.completed}
-    color="text-green-600"
-    cardColor="bg-green-100"
-    isLast
-    onSelectTask={setSelectedTask}
-  />
-</View>
-
+        <TaskColumn
+          title="DONE"
+          tasks={dummyTasks.done}
+          color="text-green-600"
+          cardColor="bg-green-100"
+          isLast
+          onSelectTask={setSelectedTask}
+        />
+      </View>
 
       <TaskModal
         visible={!!selectedTask}
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
-        onCreated={() => refreshTasks(sprint.$id)} 
+        onCreated={() => refreshTasks(sprint.$id)}
       />
 
       <TouchableOpacity
         className="absolute bottom-6 right-6 bg-blue-600 w-14 h-14 rounded-full justify-center items-center shadow-lg"
-         onPress={() => setShowCreateModal(true)}
+        onPress={() => setShowCreateModal(true)}
       >
         <Text className="text-white text-3xl font-bold">+</Text>
       </TouchableOpacity>
 
       <CreateTaskModal
-      visible={showCreateModal}
-      sprintId={sprint?.$id}
-      onClose={() => setShowCreateModal(false)}
-      onCreated={() => refreshTasks(sprint.$id)} 
-    />
+        visible={showCreateModal}
+        sprintId={sprint?.$id}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={() => refreshTasks(sprint.$id)}
+      />
     </SafeAreaView>
   );
 }
