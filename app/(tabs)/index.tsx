@@ -114,7 +114,6 @@ export default function CreateSprintScreen() {
         </Text>
       </View>
 
-      {/* Card Container */}
       <View className="bg-white rounded-2xl shadow-md p-6">
         {/* Sprint Title */}
         <View className="mb-6">
@@ -129,7 +128,6 @@ export default function CreateSprintScreen() {
           />
         </View>
 
-        {/* Sprint Duration */}
         <View className="mb-6">
           <Text className="text-base font-semibold text-gray-800 mb-2">
             Sprint Duration
@@ -143,7 +141,7 @@ export default function CreateSprintScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Action Button */}
+        
         <TouchableOpacity
           disabled={loading}
           className={`rounded-lg py-4 mt-6 ${
@@ -161,7 +159,6 @@ export default function CreateSprintScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Duration Picker Modal */}
       <Modal
         transparent
         visible={dropdownVisible}

@@ -115,20 +115,15 @@ export default function SprintBoard() {
       <Text className="text-xl font-bold text-center py-3">
         {sprint?.title || "Sprint"}
       </Text>
-
+      
       <SprintboardHeader
+        sprint={sprint}
         progress={progress}
         completedTasks={completedTasks}
         totalTasks={totalTasks}
-        startDate={sprint?.startDate}
-        endDate={sprint?.endDate}
-        duration={sprint?.duration}
-        sprintId={sprint?.$id}
-        status={sprint?.status}
-        onSprintEnded={() =>router.replace("/(tabs)")} 
-        onCompleted={()=>triggerRefresh()}
+        onSprintEnded={() => router.replace("/(tabs)")}
+        onCompleted={() => triggerRefresh()}
       />
-
 
       <View className="flex-row flex-1 px-2">
         <TaskColumn
