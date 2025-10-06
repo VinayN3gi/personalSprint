@@ -34,7 +34,7 @@ export default function CreateTaskModal({
 
 
   const handleCreateTask = async () => {
-    if (!title.trim() || !desc.trim()) {
+    if (!title.trim()) {
       Alert.alert("Missing Info", "Please enter a task title.");
       return;
     }

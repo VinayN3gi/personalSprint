@@ -21,8 +21,8 @@ export default function TaskModal({
   onClose,
   onCreated,
 }: TaskModalProps) {
-  const [loading, setLoading] = useState(false); // delete loading
-  const [movingTo, setMovingTo] = useState<string | null>(null); // which move button is active
+  const [loading, setLoading] = useState(false); 
+  const [movingTo, setMovingTo] = useState<string | null>(null); 
 
   if (!task) return null;
 

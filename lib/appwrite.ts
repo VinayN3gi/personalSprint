@@ -10,4 +10,5 @@ export const tables = new TablesDB(client)
 export const DB_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 export const SPRINTS_ID = process.env.EXPO_PUBLIC_APPWRITE_SPRINTS_COLLECTION_ID!;
 export const TASKS_ID = process.env.EXPO_PUBLIC_APPWRITE_TASKS_COLLECTION_ID!;
+export const HISTORY_ID = process.env.EXPO_PUBLIC_APPWRITE_HISTORY_COLLECTION_ID!;
 export { ID };
