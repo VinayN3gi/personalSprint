@@ -121,7 +121,7 @@ export default function SprintBoard() {
         progress={progress}
         completedTasks={completedTasks}
         totalTasks={totalTasks}
-        onSprintEnded={() => router.replace("/(tabs)")}
+        onSprintEnded={() => router.replace("/(tabs)/history")}
         onCompleted={() => triggerRefresh()}
       />
 
