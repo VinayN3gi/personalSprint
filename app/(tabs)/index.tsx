@@ -10,12 +10,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { account, ID, DB_ID, SPRINTS_ID, tables } from "@/lib/appwrite";
+import { account, ID, DB_ID, SPRINTS_ID, TASKS_ID, tables } from "@/lib/appwrite";
 import { useRouter } from "expo-router";
 import { Query } from "appwrite";
 import { AlertModal } from "@/components/AlertModal";
 import { useRefresh } from "@/hooks/RefreshContext";
-
 
 export default function CreateSprintScreen() {
   const [title, setTitle] = useState("");
@@ -27,7 +26,7 @@ export default function CreateSprintScreen() {
     title: "",
     message: "",
   });
-  const {triggerRefresh}=useRefresh()
+  const { triggerRefresh } = useRefresh();
 
   const router = useRouter();
   const options = [7, 14];
@@ -47,6 +46,7 @@ export default function CreateSprintScreen() {
     try {
       const user = await account.get();
 
+      // 🟡 Step 1: Check if there's already an active sprint
       const existing = await tables.listRows({
         databaseId: DB_ID,
         tableId: SPRINTS_ID,
@@ -59,19 +59,21 @@ export default function CreateSprintScreen() {
           "Active Sprint Exists",
           "You already have an active sprint. Please complete or close it before starting a new one."
         );
-        setTitle("")
+        setTitle("");
         return;
       }
 
-
+      // 🟡 Step 2: Create new sprint
       const startDate = new Date();
       const endDate = new Date();
       endDate.setDate(startDate.getDate() + duration);
 
+      const newSprintId = ID.unique(); // ✅ generate unique ID for the new sprint
+
       await tables.createRow({
         databaseId: DB_ID,
         tableId: SPRINTS_ID,
-        rowId: ID.unique(),
+        rowId: newSprintId,
         data: {
           userId: user.$id,
           title,
@@ -82,11 +84,34 @@ export default function CreateSprintScreen() {
         },
       });
 
+      // 🟢 Step 3: Fetch user's old tasks that are not DONE
+      const taskRes = await tables.listRows({
+        databaseId: DB_ID,
+        tableId: TASKS_ID,
+        queries: [Query.equal("userId", user.$id)],
+      });
+
+      const allTasks = taskRes.rows || [];
+      const carryOverTasks = allTasks.filter((t) => t.status !== "DONE");
+
+      // 🟢 Step 4: Update each carried-over task to belong to new sprint
+      if (carryOverTasks.length > 0) {
+        await Promise.all(
+          carryOverTasks.map((task) =>
+            tables.updateRow({
+              databaseId: DB_ID,
+              tableId: TASKS_ID,
+              rowId: task.$id,
+              data: { sprintId: newSprintId },
+            })
+          )
+        );
+      }
+
+      // 🟢 Step 5: Finish up
       setLoading(false);
-      triggerRefresh()
-      setTimeout(() => router.replace("/(tabs)/sprint"), 500);
-
-
+      triggerRefresh();
+      setTimeout(() => router.replace("/(tabs)/sprint"));
     } catch (err: any) {
       console.error("Error creating sprint:", err);
       let message = "Something went wrong. Please try again.";
@@ -95,8 +120,7 @@ export default function CreateSprintScreen() {
         message = "Network error. Please check your internet connection.";
       else if (err.message?.includes("Unauthorized"))
         message = "Session expired. Please log in again.";
-      else if (err.message)
-        message = err.message;
+      else if (err.message) message = err.message;
 
       showAlert("Error", message);
       setLoading(false);
@@ -128,6 +152,7 @@ export default function CreateSprintScreen() {
           />
         </View>
 
+        {/* Sprint Duration */}
         <View className="mb-6">
           <Text className="text-base font-semibold text-gray-800 mb-2">
             Sprint Duration
@@ -141,7 +166,7 @@ export default function CreateSprintScreen() {
           </TouchableOpacity>
         </View>
 
-        
+        {/* Create Button */}
         <TouchableOpacity
           disabled={loading}
           className={`rounded-lg py-4 mt-6 ${
@@ -159,6 +184,7 @@ export default function CreateSprintScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Duration Picker Modal */}
       <Modal
         transparent
         visible={dropdownVisible}
@@ -192,6 +218,7 @@ export default function CreateSprintScreen() {
         </Pressable>
       </Modal>
 
+      {/* Alert */}
       <AlertModal
         visible={alert.visible}
         title={alert.title}
