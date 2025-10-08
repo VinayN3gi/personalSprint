@@ -4,6 +4,7 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { account, tables, DB_ID, HISTORY_ID } from "@/lib/appwrite";
@@ -11,12 +12,15 @@ import { Query } from "appwrite";
 import HistoryCard from "@/components/HistoryCard";
 import HistoryModal from "@/components/HistoryModal";
 import { useRefresh } from "@/hooks/RefreshContext";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 const HistoryPage = () => {
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSprint, setSelectedSprint] = useState<any | null>(null);
   const { refreshToken } = useRefresh();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -47,10 +51,22 @@ const HistoryPage = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100 px-4 pt-4">
-      <Text className="text-2xl font-bold text-center mb-4 text-gray-900">
-        Sprint History
-      </Text>
+      {/* Header Row */}
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-2xl font-bold text-gray-900">
+          Sprint History
+        </Text>
 
+        {/* Settings Icon */}
+        <TouchableOpacity
+          onPress={() => router.push("../settings")}
+          className="p-2 rounded-full active:bg-gray-200"
+        >
+          <Ionicons name="settings-outline" size={24} color="#1f2937" />
+        </TouchableOpacity>
+      </View>
+
+      {/* History List */}
       {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#2563eb" />
@@ -73,7 +89,8 @@ const HistoryPage = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
         />
       )}
-      
+
+      {/* Details Modal */}
       <HistoryModal
         visible={!!selectedSprint}
         sprint={selectedSprint}
