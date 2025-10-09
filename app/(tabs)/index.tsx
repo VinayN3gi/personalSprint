@@ -184,7 +184,7 @@ export default function CreateSprintScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Duration Picker Modal */}
+    
       <Modal
         transparent
         visible={dropdownVisible}
