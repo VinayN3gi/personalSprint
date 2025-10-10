@@ -26,7 +26,7 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 justify-center px-6 bg-white">
-      {/* Welcome message */}
+     
       <Text className="text-3xl font-bold text-center mb-2 text-gray-900">
         Welcome Back
       </Text>
