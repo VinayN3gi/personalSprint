@@ -44,7 +44,15 @@ To learn more about developing your project with Expo, look at the following res
 
 ## Join the community
 
+<<<<<<< HEAD
 Join our community of developers creating universal apps.
+=======
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/VinayN3gi/personalSprint.git
+    cd personalSprint
+    ```
+>>>>>>> 74fcd57 (Update repository clone instructions in README)
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
