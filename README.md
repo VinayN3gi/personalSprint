@@ -54,5 +54,45 @@ Join our community of developers creating universal apps.
     ```
 >>>>>>> 74fcd57 (Update repository clone instructions in README)
 
+<<<<<<< HEAD
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+=======
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    # or
+    yarn install
+    ```
+
+3.  **Configure Appwrite:**
+    -   Go to [cloud.appwrite.io](https://cloud.appwrite.io/) and create a project.
+    -   Ensure your Appwrite project has the necessary databases and collections set up.
+    -   Create a `.env` file in the root of the project directory and add the following environment variables:
+        ```env
+        EXPO_PUBLIC_APPWRITE_PROJECT_ID=
+        EXPO_PUBLIC_APPWRITE_PROJECT_NAME=
+        EXPO_PUBLIC_APPWRITE_ENDPOINT=
+        EXPO_PUBLIC_APPWRITE_DATABASE_ID=
+        EXPO_PUBLIC_APPWRITE_SPRINTS_COLLECTION_ID=
+        EXPO_PUBLIC_APPWRITE_TASKS_COLLECTION_ID=
+        EXPO_PUBLIC_APPWRITE_HISTORY_COLLECTION_ID=
+        ```
+
+### Running the App
+
+Start the development server using Expo:
+
+```sh
+npx expo start
+```
+
+This will open the Expo developer tools. From there, you can:
+-   Scan the QR code with the Expo Go app on your Android or iOS device.
+-   Press `a` to run on an Android emulator.
+-   Press `i` to run on an iOS simulator.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+>>>>>>> 1ef41a2 (Update README.md)
