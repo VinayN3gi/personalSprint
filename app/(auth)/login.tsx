@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { account, ID } from "@/lib/appwrite";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -25,7 +26,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
+    <SafeAreaView className="flex-1 justify-center px-6 bg-white">
      
       <Text className="text-3xl font-bold text-center mb-2 text-gray-900">
         Welcome Back
@@ -71,6 +72,6 @@ export default function LoginScreen() {
           Don’t have an account? Sign Up
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
